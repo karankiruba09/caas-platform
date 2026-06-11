@@ -66,10 +66,13 @@ metrics:
   portName: http
   interval: 30s
 
-# NetworkPolicy: allow ingress-nginx and Prometheus to reach the app; everything
-# else inbound is denied by the tenant's default-deny policy.
+# NetworkPolicy: OFF by default. Inside a managed tenant, the tenant template
+# already provides namespace-level allow rules (ingress-nginx + monitoring -> all
+# pods) and a default-deny, and tenants are intentionally NOT permitted to manage
+# NetworkPolicies via their AppProject. Enable this only for the platform's own
+# apps deployed outside a managed tenant namespace.
 networkPolicy:
-  enabled: true
+  enabled: false
 
 # Health probes (paths for the default podinfo image; override per app).
 probes:
