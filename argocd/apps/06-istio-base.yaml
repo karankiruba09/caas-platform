@@ -18,6 +18,13 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: istio-system
+  # istiod injects the validating-webhook caBundle at runtime; ignore that drift.
+  ignoreDifferences:
+    - group: admissionregistration.k8s.io
+      kind: ValidatingWebhookConfiguration
+      jqPathExpressions:
+        - '.webhooks[].clientConfig.caBundle'
+        - '.webhooks[].failurePolicy'
   syncPolicy:
     automated:
       prune: true
