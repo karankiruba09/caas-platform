@@ -1,0 +1,26 @@
+# Customer app "bookinfo" — a meshed, production-shaped multi-service app.
+# Deployed via kustomize into tenant-bookinfo under the bookinfo AppProject.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: bookinfo
+  namespace: argocd
+spec:
+  project: bookinfo
+  source:
+    repoURL: https://github.com/karankiruba09/caas-platform.git
+    targetRevision: main
+    path: apps/bookinfo
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: tenant-bookinfo
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 10
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m

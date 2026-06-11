@@ -1,0 +1,13 @@
+# Mesh-enabled tenant. istio-injection=enabled makes istiod inject a sidecar
+# into every pod here. PSA is 'baseline' (not 'restricted') because the upstream
+# Bookinfo sample images aren't restricted-hardened; we still run them non-root
+# and keep the Kyverno guardrails on (see the app's securityContext).
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tenant-bookinfo
+  labels:
+    caas.tenant: bookinfo
+    istio-injection: enabled
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/warn: baseline

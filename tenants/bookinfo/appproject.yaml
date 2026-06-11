@@ -1,0 +1,37 @@
+# Per-tenant AppProject for bookinfo. Like the standard tenant project but also
+# permits the kinds a meshed, production-shaped app needs: Istio config, HPA,
+# PDB. Still scoped to the tenant-bookinfo namespace and the approved repo.
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: bookinfo
+  namespace: argocd
+spec:
+  description: "Tenant bookinfo — meshed multi-service app, scoped to tenant-bookinfo"
+  sourceRepos:
+    - https://github.com/karankiruba09/caas-platform.git
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: tenant-bookinfo
+  clusterResourceWhitelist: []
+  namespaceResourceWhitelist:
+    - { group: "",                      kind: ConfigMap }
+    - { group: "",                      kind: Secret }
+    - { group: "",                      kind: Service }
+    - { group: "",                      kind: ServiceAccount }
+    - { group: "",                      kind: PersistentVolumeClaim }
+    - { group: "apps",                  kind: Deployment }
+    - { group: "apps",                  kind: StatefulSet }
+    - { group: "batch",                 kind: Job }
+    - { group: "batch",                 kind: CronJob }
+    - { group: "networking.k8s.io",     kind: Ingress }
+    - { group: "autoscaling",           kind: HorizontalPodAutoscaler }
+    - { group: "policy",                kind: PodDisruptionBudget }
+    - { group: "monitoring.coreos.com", kind: ServiceMonitor }
+    - { group: "networking.istio.io",   kind: VirtualService }
+    - { group: "networking.istio.io",   kind: DestinationRule }
+    - { group: "networking.istio.io",   kind: Gateway }
+    - { group: "networking.istio.io",   kind: Sidecar }
+    - { group: "security.istio.io",     kind: PeerAuthentication }
+    - { group: "security.istio.io",     kind: AuthorizationPolicy }
+    - { group: "telemetry.istio.io",    kind: Telemetry }
