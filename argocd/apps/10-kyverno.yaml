@@ -25,6 +25,20 @@ spec:
           replicas: 1
         reportsController:
           replicas: 1
+        # Chart default cleanup-job image (bitnami/kubectl) was removed from
+        # Docker Hub in 2025; point at the bitnamilegacy mirror so the report
+        # cleanup CronJobs can pull.
+        cleanupJobs:
+          admissionReports:
+            image: { registry: docker.io, repository: bitnamilegacy/kubectl, tag: "1.28.5" }
+          clusterAdmissionReports:
+            image: { registry: docker.io, repository: bitnamilegacy/kubectl, tag: "1.28.5" }
+          updateRequests:
+            image: { registry: docker.io, repository: bitnamilegacy/kubectl, tag: "1.28.5" }
+          ephemeralReports:
+            image: { registry: docker.io, repository: bitnamilegacy/kubectl, tag: "1.28.5" }
+          clusterEphemeralReports:
+            image: { registry: docker.io, repository: bitnamilegacy/kubectl, tag: "1.28.5" }
   destination:
     server: https://kubernetes.default.svc
     namespace: kyverno

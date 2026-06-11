@@ -49,6 +49,22 @@ kubectl create namespace "${ARGOCD_NAMESPACE}" --dry-run=client -o yaml | kubect
 kubectl apply -n "${ARGOCD_NAMESPACE}" \
   -f "https://raw.githubusercontent.com/argoproj/argo-cd/${ARGOCD_VERSION}/manifests/install.yaml"
 
+# Annotation-based resource tracking: the default label tracking overwrites
+# app.kubernetes.io/instance on every resource, which breaks Helm charts that
+# rely on that label for ClusterRole aggregation (e.g. Kyverno). Annotation
+# tracking avoids that whole class of bug.
+log "Configuring annotation-based resource tracking"
+kubectl -n "${ARGOCD_NAMESPACE}" patch configmap argocd-cm --type merge \
+  -p '{"data":{"application.resourceTrackingMethod":"annotation"}}'
+
+# Server-side diff: newer Kubernetes (>=1.33) adds Deployment status fields like
+# terminatingReplicas that older Argo client-side structured-merge diff can't
+# parse (breaks ServerSideApply apps such as Kyverno). Server-side diff uses the
+# API server's own schema, which knows the field.
+log "Enabling server-side diff"
+kubectl -n "${ARGOCD_NAMESPACE}" patch configmap argocd-cmd-params-cm --type merge \
+  -p '{"data":{"controller.diff.server.side":"true"}}'
+
 log "Waiting for Argo CD to become ready"
 kubectl -n "${ARGOCD_NAMESPACE}" rollout status deploy/argocd-server --timeout=300s
 kubectl -n "${ARGOCD_NAMESPACE}" rollout status deploy/argocd-repo-server --timeout=300s
