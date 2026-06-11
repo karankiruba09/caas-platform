@@ -1,0 +1,50 @@
+# Tenants may not run privileged containers or share host namespaces.
+# Scoped to tenant namespaces. Enforced at admission.
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-privileged
+  annotations:
+    policies.kyverno.io/title: Disallow privileged and host namespaces
+    policies.kyverno.io/category: Tenant Guardrails
+    policies.kyverno.io/severity: high
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: no-privileged-containers
+      match:
+        any:
+          - resources:
+              kinds: [Pod]
+              namespaceSelector:
+                matchExpressions:
+                  - { key: caas.tenant, operator: Exists }
+      validate:
+        message: "Privileged containers are not allowed."
+        pattern:
+          spec:
+            =(ephemeralContainers):
+              - =(securityContext):
+                  =(privileged): "false"
+            =(initContainers):
+              - =(securityContext):
+                  =(privileged): "false"
+            containers:
+              - =(securityContext):
+                  =(privileged): "false"
+    - name: no-host-namespaces
+      match:
+        any:
+          - resources:
+              kinds: [Pod]
+              namespaceSelector:
+                matchExpressions:
+                  - { key: caas.tenant, operator: Exists }
+      validate:
+        message: "Host namespaces (hostNetwork/hostPID/hostIPC) are not allowed."
+        pattern:
+          spec:
+            =(hostNetwork): "false"
+            =(hostPID): "false"
+            =(hostIPC): "false"

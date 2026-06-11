@@ -1,0 +1,18 @@
+# Caps the tenant's total footprint. services.loadbalancers=0 enforces the CaaS
+# rule "expose via ingress, never a per-service LoadBalancer".
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: tenant-quota
+  namespace: tenant-acme
+spec:
+  hard:
+    requests.cpu: "2"
+    requests.memory: 4Gi
+    limits.cpu: "4"
+    limits.memory: 8Gi
+    pods: "20"
+    persistentvolumeclaims: "5"
+    services: "10"
+    services.loadbalancers: "0"
+    services.nodeports: "0"

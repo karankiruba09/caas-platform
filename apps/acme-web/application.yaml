@@ -1,0 +1,28 @@
+# Customer app "acme-web" for tenant acme. Deployed via the golden-path chart
+# using this directory's values.yaml (Argo multi-source: chart + $values ref).
+# Runs under the per-tenant "acme" AppProject, so it can only land in tenant-acme.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: acme-web
+  namespace: argocd
+spec:
+  project: acme
+  sources:
+    - repoURL: https://github.com/karankiruba09/caas-platform.git
+      targetRevision: main
+      ref: values
+    - repoURL: https://github.com/karankiruba09/caas-platform.git
+      targetRevision: main
+      path: golden-path/app
+      helm:
+        releaseName: acme-web
+        valueFiles:
+          - $values/apps/acme-web/values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: tenant-acme
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

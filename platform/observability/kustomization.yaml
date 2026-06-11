@@ -1,0 +1,10 @@
+# Applied by the Argo Application "platform-observability-extras".
+# The OTel Collector itself is installed separately via its Helm chart
+# (argocd/apps/30-otel-collector.yaml); this bundle is everything around it.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: platform-observability
+resources:
+  - jaeger.yaml
+  - ingress.yaml
+  - networkpolicy.yaml

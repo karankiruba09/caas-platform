@@ -1,0 +1,19 @@
+# acme-web — what a customer supplies to the golden-path chart. Typically just
+# image + subdomain; everything else (TLS, tracing, metrics, netpol, security)
+# is wired by the chart's defaults.
+fullnameOverride: acme-web
+
+image:
+  repository: ghcr.io/stefanprodan/podinfo
+  tag: "6.7.1"
+
+containerPort: 9898
+
+ingress:
+  subdomain: acme-web        # -> acme-web.apps.k8-cmb1.gcloud.ca
+
+# podinfo exposes Prometheus metrics at /metrics on its http port.
+metrics:
+  enabled: true
+  path: /metrics
+  portName: http

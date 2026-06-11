@@ -1,0 +1,24 @@
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+.vscode/
+*.code-workspace
+*.swp
+
+# --- Local render / scratch ---
+*.rendered.yaml
+/tmp/
+.render/
+
+# --- Secrets (defense in depth — nothing sensitive should ever be committed) ---
+.env
+*.env
+*.pem
+*.key
+*.p12
+*.pfx
+kubeconfig
+*.kubeconfig
+
+# --- Helm ---
+**/charts/*.tgz

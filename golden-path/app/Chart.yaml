@@ -1,0 +1,10 @@
+apiVersion: v2
+name: golden-path-app
+description: >-
+  The CaaS golden-path chart. A customer supplies image + host and gets a
+  production-shaped deployment: ingress with automatic TLS, OTLP tracing wired to
+  the platform collector, Prometheus metrics via ServiceMonitor, network policy,
+  and a securityContext that satisfies the platform guardrails by construction.
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

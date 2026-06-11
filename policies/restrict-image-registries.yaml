@@ -1,0 +1,36 @@
+# Tenant images should come only from the approved Harbor registry (supply-chain
+# control). Shipped in Audit mode so the POC's public sample image still runs and
+# violations are *reported*; flip validationFailureAction to Enforce once tenant
+# images are mirrored into Harbor.
+#
+# Set the real Harbor registry host below (and via scripts/set-cluster.sh).
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: restrict-image-registries
+  annotations:
+    policies.kyverno.io/title: Restrict images to the approved registry
+    policies.kyverno.io/category: Tenant Guardrails
+    policies.kyverno.io/severity: high
+spec:
+  validationFailureAction: Audit   # change to Enforce after mirroring to Harbor
+  background: true
+  rules:
+    - name: images-from-harbor
+      match:
+        any:
+          - resources:
+              kinds: [Pod]
+              namespaceSelector:
+                matchExpressions:
+                  - { key: caas.tenant, operator: Exists }
+      validate:
+        message: >-
+          Images must be pulled from the approved Harbor registry
+          (registry.k8-cmb1.gcloud.ca/...).
+        pattern:
+          spec:
+            containers:
+              - image: "registry.k8-cmb1.gcloud.ca/*"
+            =(initContainers):
+              - image: "registry.k8-cmb1.gcloud.ca/*"

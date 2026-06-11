@@ -1,0 +1,80 @@
+# Golden-path chart values. Defaults are chosen so a customer app passes the
+# platform's Kyverno guardrails (limits, non-root, no-privileged) out of the box.
+# A customer typically overrides only: image, ingress.subdomain, and maybe port.
+
+# Name override (defaults to the Helm release name).
+nameOverride: ""
+fullnameOverride: ""
+
+replicaCount: 1
+
+image:
+  # NOTE: when restrict-image-registries is enforced, this must be a Harbor image.
+  repository: ghcr.io/stefanprodan/podinfo
+  tag: "6.7.1"
+  pullPolicy: IfNotPresent
+
+# The port your container listens on.
+containerPort: 9898
+
+service:
+  port: 80
+
+ingress:
+  enabled: true
+  className: nginx
+  clusterIssuer: letsencrypt-cloudflare
+  # Host is <subdomain>.<baseDomain>. Set subdomain per app; baseDomain is the
+  # cluster's app domain. Or set `host` directly to override.
+  baseDomain: apps.k8-cmb1.gcloud.ca
+  subdomain: ""        # e.g. "acme-web"
+  host: ""             # explicit override; if empty, built from subdomain+baseDomain
+  tlsSecretName: ""    # defaults to <fullname>-tls
+
+# Resources are REQUIRED by the guardrails — defaults provided here.
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 128Mi
+
+# Pod/container security. Satisfies require-run-as-nonroot + disallow-privileged.
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  capabilities:
+    drop: ["ALL"]
+
+# Tracing: the platform OTel Collector endpoint is injected as standard OTEL_*
+# env so any OpenTelemetry-instrumented app exports automatically.
+observability:
+  otlpEndpoint: http://otel-collector.platform-observability.svc.cluster.local:4318
+  serviceName: ""      # defaults to <fullname>
+
+# Metrics: emit a ServiceMonitor so the existing Prometheus Operator scrapes the
+# app and dashboards appear in Grafana — no per-team Prometheus setup.
+metrics:
+  enabled: true
+  path: /metrics
+  portName: http
+  interval: 30s
+
+# NetworkPolicy: allow ingress-nginx and Prometheus to reach the app; everything
+# else inbound is denied by the tenant's default-deny policy.
+networkPolicy:
+  enabled: true
+
+# Health probes (paths for the default podinfo image; override per app).
+probes:
+  readinessPath: /readyz
+  livenessPath: /healthz
+
+# Extra environment variables.
+extraEnv: []

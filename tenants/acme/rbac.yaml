@@ -1,0 +1,48 @@
+# Tenant-admin role: full control over ordinary workload resources WITHIN the
+# tenant namespace, but deliberately NOT over the guardrails themselves
+# (ResourceQuota, LimitRange, NetworkPolicy are absent) so a tenant cannot raise
+# their own limits or open their own network. Bound to the tenant's group; wire
+# that group to your IdP (Rancher/OIDC).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: tenant-admin
+  namespace: tenant-acme
+rules:
+  - apiGroups: ["", "apps", "batch"]
+    resources:
+      - pods
+      - pods/log
+      - pods/exec
+      - services
+      - configmaps
+      - secrets
+      - persistentvolumeclaims
+      - serviceaccounts
+      - deployments
+      - replicasets
+      - statefulsets
+      - daemonsets
+      - jobs
+      - cronjobs
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["monitoring.coreos.com"]
+    resources: ["servicemonitors"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tenant-admin
+  namespace: tenant-acme
+subjects:
+  - kind: Group
+    name: "caas:tenant:acme"
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: tenant-admin
+  apiGroup: rbac.authorization.k8s.io
