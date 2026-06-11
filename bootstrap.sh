@@ -65,6 +65,13 @@ log "Enabling server-side diff"
 kubectl -n "${ARGOCD_NAMESPACE}" patch configmap argocd-cmd-params-cm --type merge \
   -p '{"data":{"controller.diff.server.side":"true"}}'
 
+# Run argocd-server in insecure mode so the shared nginx ingress can terminate
+# TLS and proxy plain HTTP (see platform/argocd-ingress/). The UI is then at
+# https://argocd.<BASE_DOMAIN>.
+log "Enabling argocd-server insecure mode (TLS terminated at ingress)"
+kubectl -n "${ARGOCD_NAMESPACE}" patch configmap argocd-cmd-params-cm --type merge \
+  -p '{"data":{"server.insecure":"true"}}'
+
 log "Waiting for Argo CD to become ready"
 kubectl -n "${ARGOCD_NAMESPACE}" rollout status deploy/argocd-server --timeout=300s
 kubectl -n "${ARGOCD_NAMESPACE}" rollout status deploy/argocd-repo-server --timeout=300s
