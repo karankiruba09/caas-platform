@@ -1,0 +1,30 @@
+# istio-cni: a node-level CNI plugin (DaemonSet) that performs the pod traffic
+# redirection Istio needs, so application pods DON'T need a privileged init
+# container. This is what lets meshed pods run under restricted PodSecurity and
+# pass the Kyverno guardrails. Chains after Calico; standard CNI paths
+# (/opt/cni/bin, /etc/cni/net.d) so no overrides needed.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: platform-istio-cni
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: platform
+  source:
+    repoURL: https://istio-release.storage.googleapis.com/charts
+    chart: cni
+    targetRevision: 1.30.1
+    helm:
+      releaseName: istio-cni
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: istio-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
