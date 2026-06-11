@@ -36,6 +36,8 @@ never touching the workload.
 | Traces | **OpenTelemetry Collector + Jaeger** | Platform-wide tracing backend |
 | Self-service delivery | **Argo CD** | GitOps engine; customers deploy via Git |
 | Policy guardrails | **Kyverno** | Enforce limits, non-root, no-privileged, registry |
+| Service mesh | **Istio** (+ istio-cni) | Sidecars: mTLS, traffic management, mesh telemetry |
+| Autoscaling metrics | **metrics-server** | Resource-metrics API for HPA and `kubectl top` |
 | Tenancy | native K8s | Namespace + ResourceQuota + LimitRange + RBAC + NetworkPolicy |
 
 ---
@@ -63,10 +65,23 @@ caas-platform/
 │   └── acme/                     # example tenant
 ├── apps/
 │   └── acme-web/                 # example customer app (uses golden-path chart)
+├── apps/
+│   ├── acme-web/                 # simple sample app (podinfo)
+│   └── bookinfo/                 # production-grade meshed multi-service app
 └── docs/
     ├── architecture.md           # diagrams + how each layer works
-    └── demo-runbook.md           # the click-by-click stakeholder demo
+    ├── demo-runbook.md           # the click-by-click stakeholder demo
+    └── mesh-app.md               # Istio Bookinfo: mTLS, tracing, canary, HPA
 ```
+
+## Two sample workloads
+
+- **acme-web** (`apps/acme-web/`) — a single service (podinfo) showing the basic
+  golden path: GitOps deploy → URL + TLS + metrics + traces.
+- **bookinfo** (`apps/bookinfo/`) — a production-grade **multi-service** app in
+  the **Istio mesh**: sidecars, STRICT mTLS, distributed tracing (no app
+  changes), canary traffic splitting, retries/fault-injection, HPA, and PDB.
+  See [`docs/mesh-app.md`](docs/mesh-app.md).
 
 ---
 
