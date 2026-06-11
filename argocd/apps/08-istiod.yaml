@@ -24,6 +24,13 @@ spec:
             enabled: true
         istio_cni:
           enabled: true
+        global:
+          # Default sidecar resources are 100m/2000m CPU — the 2000m *limit*
+          # blows tenant ResourceQuotas fast. Right-size for the platform.
+          proxy:
+            resources:
+              requests: { cpu: 50m, memory: 64Mi }
+              limits: { cpu: 250m, memory: 256Mi }
         meshConfig:
           enableTracing: true
           # OTLP tracing provider -> platform OTel Collector.
