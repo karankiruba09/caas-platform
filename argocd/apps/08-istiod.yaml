@@ -41,11 +41,12 @@ spec:
       kind: MutatingWebhookConfiguration
       jqPathExpressions:
         - '.webhooks[].clientConfig.caBundle'
+    # istiod fully owns the runtime config of its validating webhook (caBundle,
+    # failurePolicy, rules); ignore the whole webhooks array.
     - group: admissionregistration.k8s.io
       kind: ValidatingWebhookConfiguration
       jqPathExpressions:
-        - '.webhooks[].clientConfig.caBundle'
-        - '.webhooks[].failurePolicy'
+        - '.webhooks'
   syncPolicy:
     automated:
       prune: true
