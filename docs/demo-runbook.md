@@ -119,14 +119,26 @@ Expected: **Kyverno rejects it** at admission with a clear message
 
 ## 5. Prove tenant isolation
 
-Onboard a second tenant and show they can't reach across:
+Verify the tenant-admin role is correctly scoped. NOTE: if your kubeconfig goes
+through the Rancher proxy (server URL `.../k8s/clusters/...`), `kubectl --as`
+impersonation is NOT honored — it evaluates as the admin account and returns
+"yes" to everything. Test with a real ServiceAccount token instead:
 
 ```bash
-./scripts/onboard-tenant.sh other
-git add tenants/other && git commit -m "onboard tenant other" && git push
-# wait for sync, then:
-kubectl auth can-i get pods -n tenant-acme \
-  --as=system:serviceaccount:tenant-other:default        # -> no
+kubectl -n tenant-acme create serviceaccount iso-test
+kubectl -n tenant-acme create rolebinding iso-test --role=tenant-admin \
+  --serviceaccount=tenant-acme:iso-test
+TOK=$(kubectl -n tenant-acme create token iso-test --duration=10m)
+SERVER=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
+K="kubectl --server=$SERVER --token=$TOK --insecure-skip-tls-verify"
+
+$K auth can-i create deployments -n tenant-acme   # yes  (own workloads)
+$K auth can-i get pods -n kube-system             # no   (no cross-namespace)
+$K auth can-i get nodes                           # no   (no cluster escalation)
+$K auth can-i delete resourcequota -n tenant-acme # no   (can't raise own limits)
+$K auth can-i create networkpolicies -n tenant-acme # no (can't open own network)
+
+kubectl -n tenant-acme delete sa iso-test; kubectl -n tenant-acme delete rolebinding iso-test
 ```
 
 Network isolation (default-deny means cross-tenant pod traffic is dropped):
