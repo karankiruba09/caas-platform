@@ -1,18 +1,18 @@
-# Per-tenant AppProject for bookinfo. Like the standard tenant project but also
-# permits the kinds a meshed, production-shaped app needs: Istio config, HPA,
-# PDB. Still scoped to the tenant-bookinfo namespace and the approved repo.
+# Per-tenant AppProject for the full-stack app. Permits the full set of kinds a
+# real stateful application needs (StatefulSet, PVC, Secret, Job, CronJob, HPA,
+# PDB, Istio config), still scoped to tenant-wordpress and the approved repo.
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
-  name: bookinfo
+  name: wordpress
   namespace: argocd
 spec:
-  description: "Tenant bookinfo — meshed multi-service app, scoped to tenant-bookinfo"
+  description: "Tenant wordpress — full-stack app, scoped to tenant-wordpress"
   sourceRepos:
     - https://github.com/karankiruba09/caas-platform.git
   destinations:
     - server: https://kubernetes.default.svc
-      namespace: tenant-bookinfo
+      namespace: tenant-wordpress
   clusterResourceWhitelist: []
   namespaceResourceWhitelist:
     - { group: "",                      kind: ConfigMap }
@@ -30,8 +30,5 @@ spec:
     - { group: "monitoring.coreos.com", kind: ServiceMonitor }
     - { group: "networking.istio.io",   kind: VirtualService }
     - { group: "networking.istio.io",   kind: DestinationRule }
-    - { group: "networking.istio.io",   kind: Gateway }
-    - { group: "networking.istio.io",   kind: Sidecar }
     - { group: "security.istio.io",     kind: PeerAuthentication }
-    - { group: "security.istio.io",     kind: AuthorizationPolicy }
     - { group: "telemetry.istio.io",    kind: Telemetry }

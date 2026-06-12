@@ -1,13 +1,11 @@
-# Same isolation posture as other tenants: default-deny ingress, allow
-# same-namespace (east-west between the mesh services), ingress-nginx (to
-# productpage), and Prometheus scraping. Egress open so sidecars reach istiod
-# and the OTel collector.
+# default-deny ingress + allow same-namespace (WordPress->MySQL), ingress-nginx
+# (to WordPress), and Prometheus scraping. Egress open for sidecar->istiod/otel.
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: default-deny-ingress
-  namespace: tenant-bookinfo
+  namespace: tenant-wordpress
 spec:
   podSelector: {}
   policyTypes: [Ingress]
@@ -16,7 +14,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-same-namespace
-  namespace: tenant-bookinfo
+  namespace: tenant-wordpress
 spec:
   podSelector: {}
   policyTypes: [Ingress]
@@ -28,7 +26,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-ingress-nginx
-  namespace: tenant-bookinfo
+  namespace: tenant-wordpress
 spec:
   podSelector: {}
   policyTypes: [Ingress]
@@ -42,7 +40,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-monitoring-scrape
-  namespace: tenant-bookinfo
+  namespace: tenant-wordpress
 spec:
   podSelector: {}
   policyTypes: [Ingress]

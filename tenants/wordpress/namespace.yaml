@@ -1,0 +1,13 @@
+# Mesh-enabled tenant for the full-stack WordPress app. baseline PSA because the
+# official WordPress/Apache image runs as root; the database and jobs still run
+# with least privilege. istio-injection puts every pod in the mesh (mTLS + traces).
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tenant-wordpress
+  labels:
+    caas.tenant: wordpress
+    caas.allow-root: "true"          # WordPress/Apache runs as root (opt-out of runAsNonRoot)
+    istio-injection: enabled
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/warn: baseline

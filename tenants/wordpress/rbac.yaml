@@ -1,10 +1,8 @@
-# Same scoped tenant-admin as other tenants: full control over workloads in this
-# namespace (incl. Istio config + autoscaling), but not the guardrails.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: tenant-admin
-  namespace: tenant-bookinfo
+  namespace: tenant-wordpress
 rules:
   - apiGroups: ["", "apps", "batch"]
     resources:
@@ -41,10 +39,10 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: tenant-admin
-  namespace: tenant-bookinfo
+  namespace: tenant-wordpress
 subjects:
   - kind: Group
-    name: "caas:tenant:bookinfo"
+    name: "caas:tenant:wordpress"
     apiGroup: rbac.authorization.k8s.io
 roleRef:
   kind: Role

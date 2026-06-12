@@ -1,0 +1,117 @@
+# Batch workloads:
+#  * wp-install  — a one-time Job (wp-cli) that installs WordPress and publishes
+#    a first post, so the site is ready (not the setup wizard). Idempotent.
+#  * mysql-backup — a CronJob that mysqldumps the database to a dedicated PVC.
+# Both run in the mesh; native sidecars let the Job pods terminate cleanly.
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: db-backups
+  namespace: tenant-wordpress
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: wp-install
+  namespace: tenant-wordpress
+spec:
+  backoffLimit: 6
+  ttlSecondsAfterFinished: 1800
+  template:
+    metadata:
+      labels:
+        app: wp-install
+    spec:
+      restartPolicy: OnFailure
+      securityContext:
+        runAsUser: 0            # root so wp-cli can write the shared volume
+      containers:
+        - name: wp-cli
+          image: wordpress:cli-php8.2
+          command:
+            - sh
+            - -c
+            - |
+              until [ -f /var/www/html/wp-config.php ]; do echo "waiting for wp-config"; sleep 3; done
+              if wp --allow-root --path=/var/www/html core is-installed 2>/dev/null; then
+                echo "already installed"; exit 0
+              fi
+              wp --allow-root --path=/var/www/html core install \
+                --url="https://wordpress.apps.k8-cmb1.gcloud.ca" \
+                --title="CaaS Demo — Deployed via GitOps" \
+                --admin_user="$WP_ADMIN_USER" --admin_password="$WP_ADMIN_PASSWORD" \
+                --admin_email="admin@example.com" --skip-email
+              wp --allow-root --path=/var/www/html post create --post_status=publish \
+                --post_title="Hello from the CaaS platform" \
+                --post_content="Frontend + MySQL StatefulSet + Longhorn volumes + mesh mTLS + tracing — deployed by one GitOps commit."
+          env:
+            - name: WP_ADMIN_USER
+              valueFrom: { secretKeyRef: { name: wordpress-db, key: wp-admin-user } }
+            - name: WP_ADMIN_PASSWORD
+              valueFrom: { secretKeyRef: { name: wordpress-db, key: wp-admin-password } }
+          volumeMounts:
+            - { name: content, mountPath: /var/www/html }
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits:   { cpu: 500m, memory: 256Mi }
+      volumes:
+        - name: content
+          persistentVolumeClaim: { claimName: wordpress-content }
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: mysql-backup
+  namespace: tenant-wordpress
+spec:
+  schedule: "0 */6 * * *"        # every 6 hours
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        metadata:
+          labels:
+            app: mysql-backup
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+            runAsUser: 999
+            fsGroup: 999
+          containers:
+            - name: backup
+              image: mysql:8.0
+              command:
+                - sh
+                - -c
+                - |
+                  TS=$(date +%Y%m%d-%H%M%S)
+                  echo "backing up to /backup/wordpress-$TS.sql.gz"
+                  mysqldump -h mysql -uroot -p"$MYSQL_ROOT_PASSWORD" --single-transaction \
+                    --databases "$MYSQL_DATABASE" | gzip > "/backup/wordpress-$TS.sql.gz"
+                  ls -lh /backup | tail -5
+              env:
+                - name: MYSQL_ROOT_PASSWORD
+                  valueFrom: { secretKeyRef: { name: wordpress-db, key: mysql-root-password } }
+                - name: MYSQL_DATABASE
+                  valueFrom: { secretKeyRef: { name: wordpress-db, key: mysql-database } }
+              volumeMounts:
+                - { name: backups, mountPath: /backup }
+              resources:
+                requests: { cpu: 50m, memory: 128Mi }
+                limits:   { cpu: 500m, memory: 256Mi }
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities: { drop: ["ALL"] }
+          volumes:
+            - name: backups
+              persistentVolumeClaim: { claimName: db-backups }

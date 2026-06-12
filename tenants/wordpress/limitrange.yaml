@@ -1,10 +1,8 @@
-# Per-container defaults and ceilings. Defaults mean a tenant that forgets to set
-# resources still gets sane values (and still satisfies require-resource-limits).
 apiVersion: v1
 kind: LimitRange
 metadata:
   name: tenant-limits
-  namespace: tenant-acme
+  namespace: tenant-wordpress
 spec:
   limits:
     - type: Container

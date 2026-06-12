@@ -20,6 +20,14 @@ spec:
               namespaceSelector:
                 matchExpressions:
                   - { key: caas.tenant, operator: Exists }
+      # Opt-out for tenants that explicitly need root (e.g. WordPress/Apache).
+      # Label the namespace caas.allow-root=true to take this exception.
+      exclude:
+        any:
+          - resources:
+              namespaceSelector:
+                matchLabels:
+                  caas.allow-root: "true"
       validate:
         message: >-
           Containers must run as non-root: set securityContext.runAsNonRoot=true
