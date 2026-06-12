@@ -1,0 +1,22 @@
+# Exposes the Argo CD UI/API at argocd.<domain> via the shared ingress.
+# (Argo CD managing its own ingress — common and fine.)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: platform-argocd-ingress
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: platform
+  source:
+    repoURL: https://github.com/karankiruba09/caas-platform.git
+    targetRevision: main
+    path: platform-onboarding/services/argocd-ingress
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

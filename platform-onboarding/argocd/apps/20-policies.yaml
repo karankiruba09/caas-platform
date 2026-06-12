@@ -1,0 +1,30 @@
+# The guardrails: Kyverno ClusterPolicies from tenant-onboarding/policies/. Sync-wave 1 so it runs
+# after Kyverno's CRDs exist. Retry covers the brief window during first install.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: platform-policies
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: platform
+  source:
+    repoURL: https://github.com/karankiruba09/caas-platform.git
+    targetRevision: main
+    path: tenant-onboarding/policies
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kyverno
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - SkipDryRunOnMissingResource=true
+    retry:
+      limit: 10
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m

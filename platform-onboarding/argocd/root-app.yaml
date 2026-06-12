@@ -1,0 +1,30 @@
+# Root "app of apps". bootstrap.sh applies this one manifest after installing
+# Argo CD; everything else (projects, platform components, policies, tenants,
+# tenant applications) is a child Application discovered under argocd/apps/.
+#
+# repoURL is committed because Argo reads it from Git, not from local env.
+# To retarget a fork/clone, run: platform-onboarding/set-cluster.sh (rewrites repoURL etc).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/karankiruba09/caas-platform.git
+    targetRevision: main
+    path: platform-onboarding/argocd/apps
+    directory:
+      recurse: false
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

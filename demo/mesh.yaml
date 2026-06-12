@@ -1,0 +1,61 @@
+# Mesh policy: STRICT mTLS for all east-west traffic (WordPress -> MySQL, the
+# jobs -> MySQL). WordPress's port 80 and the portal's port 8080 are PERMISSIVE so
+# nginx (outside the mesh) can reach them. DestinationRules add connection-pool
+# limits + outlier detection (circuit breaking) on the database.
+---
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: default
+  namespace: tenant-wordpress
+spec:
+  mtls:
+    mode: STRICT
+---
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: wordpress-ingress
+  namespace: tenant-wordpress
+spec:
+  selector:
+    matchLabels:
+      app: wordpress
+  mtls:
+    mode: STRICT
+  portLevelMtls:
+    "80":
+      mode: PERMISSIVE
+---
+# The portal is meshed like everything else, but nginx-ingress (outside the mesh)
+# must reach its 8080 container port, so that port is PERMISSIVE.
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: portal-ingress
+  namespace: tenant-wordpress
+spec:
+  selector:
+    matchLabels:
+      app: portal
+  mtls:
+    mode: STRICT
+  portLevelMtls:
+    "8080":
+      mode: PERMISSIVE
+---
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: mysql
+  namespace: tenant-wordpress
+spec:
+  host: mysql
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 100
+    outlierDetection:
+      consecutive5xxErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s

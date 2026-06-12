@@ -1,0 +1,27 @@
+# The full-stack demo of this POC. One Argo Application brings up the entire stack
+# (web + database + cache jobs + storage + mesh + the branded portal front-door)
+# into the tenant, under the tenant's scoped AppProject.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: wordpress
+  namespace: argocd
+spec:
+  project: wordpress
+  source:
+    repoURL: https://github.com/karankiruba09/caas-platform.git
+    targetRevision: main
+    path: demo
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: tenant-wordpress
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 10
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m

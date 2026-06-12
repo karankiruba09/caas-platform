@@ -1,0 +1,25 @@
+# Tenant application: applies the demo Argo Application under demo/.
+# That Application is scoped to one tenant namespace and that tenant's AppProject.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: tenant-applications
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  project: platform
+  source:
+    repoURL: https://github.com/karankiruba09/caas-platform.git
+    targetRevision: main
+    path: demo
+    directory:
+      recurse: true
+      include: '**/application.yaml'
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
