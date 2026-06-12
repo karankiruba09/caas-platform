@@ -14,12 +14,13 @@ never touching the workload.
 
 ## The story this POC tells
 
-> A customer (`tenant-acme`) is onboarded with one PR. They commit their app to
-> Git. Argo CD deploys it to their isolated namespace. It comes up at
-> `https://acme-web.<domain>` with automatic TLS, its metrics flow to Grafana
-> and its traces to Jaeger, it cannot see or touch any other tenant, and if it
-> tries to run a privileged container the platform rejects it — all on open
-> source, reproducible from this repo in minutes.
+> A customer (`tenant-wordpress`) is onboarded with one PR, then commits a
+> full-stack application (web + database + storage + batch jobs) to Git. Argo CD
+> deploys the whole stack to their isolated namespace. It comes up at
+> `https://wordpress.<domain>` with automatic TLS, mesh mTLS between tiers,
+> distributed traces in Jaeger and metrics in Grafana, autoscaling and backups —
+> and the author never wired any of that. All open source, reproducible from this
+> repo in minutes.
 
 ---
 
@@ -56,32 +57,36 @@ caas-platform/
 │   └── apps/                     # child Applications (kyverno, observability, policies, tenants)
 ├── platform/
 │   ├── kyverno/                  # Kyverno install (Helm via Argo)
+│   ├── istio/                    # mesh-wide Istio config (tracing Telemetry)
+│   ├── argocd-ingress/           # Argo CD UI ingress
 │   └── observability/            # OTel Collector + Jaeger (Helm via Argo) + ingress + netpol
 ├── policies/                     # Kyverno ClusterPolicies (the guardrails)
 ├── golden-path/
-│   └── app/                      # the reusable customer app Helm chart
+│   └── app/                      # reusable Helm chart for simple single-service apps
 ├── tenants/
 │   ├── _template/                # tenant scaffolding (quota, rbac, netpol, AppProject)
-│   └── acme/                     # example tenant
+│   └── wordpress/                # the application's tenant (mesh-enabled)
 ├── apps/
-│   └── acme-web/                 # example customer app (uses golden-path chart)
-├── apps/
-│   ├── acme-web/                 # simple sample app (podinfo)
-│   └── bookinfo/                 # production-grade meshed multi-service app
+│   └── wordpress/                # THE full-stack app (web + db + storage + jobs + mesh)
 └── docs/
     ├── architecture.md           # diagrams + how each layer works
-    ├── demo-runbook.md           # the click-by-click stakeholder demo
-    └── mesh-app.md               # Istio Bookinfo: mTLS, tracing, canary, HPA
+    ├── demo-runbook.md           # platform demo: onboarding, guardrails, isolation
+    └── fullstack-app.md          # the WordPress full-stack app + feature coverage
 ```
 
-## Two sample workloads
+## The application
 
-- **acme-web** (`apps/acme-web/`) — a single service (podinfo) showing the basic
-  golden path: GitOps deploy → URL + TLS + metrics + traces.
-- **bookinfo** (`apps/bookinfo/`) — a production-grade **multi-service** app in
-  the **Istio mesh**: sidecars, STRICT mTLS, distributed tracing (no app
-  changes), canary traffic splitting, retries/fault-injection, HPA, and PDB.
-  See [`docs/mesh-app.md`](docs/mesh-app.md).
+One **full-stack application** is the payload of this POC — **WordPress + MySQL**
+running in the Istio mesh. It deliberately exercises (almost) the entire
+Kubernetes surface — StatefulSet, RWO + RWX persistent volumes (Longhorn),
+Secrets, ConfigMaps, init containers, a Job and a CronJob, HPA, PDB, Ingress+TLS,
+mesh mTLS + distributed tracing — and the whole stack deploys from **one Argo
+Application / one commit**, with the platform auto-applying TLS, mTLS, tracing,
+metrics, and policy. See [`docs/fullstack-app.md`](docs/fullstack-app.md).
+
+> The `golden-path/` Helm chart remains as the easy path for *simple*
+> single-service apps (image + host → URL+TLS+metrics+traces); the full-stack app
+> ships its own kustomize bundle because it is multi-tier.
 
 ---
 
@@ -96,18 +101,20 @@ caas-platform/
  └───────────┬───────────────────────┬───────────────────────┬──────────────┘
              ▼                        ▼                        ▼
    Platform services         Guardrails (Kyverno)     Tenant namespaces
-   - OTel Collector+Jaeger   - require limits         tenant-acme:
-   - (uses existing)         - runAsNonRoot             quota+limitrange
-     Prometheus+Grafana      - no privileged            RBAC (tenant-admin)
+   - OTel Collector+Jaeger   - require limits         tenant-wordpress:
+   - Prometheus+Grafana      - runAsNonRoot             quota+limitrange
+   - Istio (mesh, mTLS)      - no privileged            RBAC (tenant-admin)
    - ingress-nginx           - images from Harbor       default-deny netpol
-   - cert-manager                                       AppProject (scoped)
-                                                          │
+   - cert-manager            - (caas.allow-root         AppProject (scoped)
+   - metrics-server            opt-out per ns)            │
                                                           ▼
-                                              golden-path app chart:
-                                              Deployment+Service
+                                              full-stack app (one commit):
+                                              WordPress + MySQL StatefulSet
                                                  ├─ Ingress (auto-TLS)
-                                                 ├─ OTLP → collector → Jaeger
-                                                 └─ ServiceMonitor → Prometheus
+                                                 ├─ Longhorn PVCs (RWO+RWX)
+                                                 ├─ mesh mTLS + OTLP → Jaeger
+                                                 ├─ Job + CronJob (install/backup)
+                                                 └─ HPA + PDB
 ```
 
 Full detail and the request path are in [`docs/architecture.md`](docs/architecture.md).
@@ -124,15 +131,15 @@ Full detail and the request path are in [`docs/architecture.md`](docs/architectu
 # 1. Install Argo CD and hand it this repo (app-of-apps). Comes up in minutes.
 BASE_DOMAIN=apps.k8-cmb1.gcloud.ca ./bootstrap.sh
 
-# 2. Onboard a tenant (writes tenants/<name>/, commit + push → Argo syncs).
-./scripts/onboard-tenant.sh acme
-
-# 3. The customer's app (apps/acme-web) syncs automatically once committed.
-#    Then run the demo:
+# 2. The application (tenant-wordpress + apps/wordpress) is already in the repo,
+#    so Argo brings up the whole full-stack app automatically.
+#    To onboard a NEW simple tenant from the template:
+./scripts/onboard-tenant.sh <name>
 ```
 
-Follow [`docs/demo-runbook.md`](docs/demo-runbook.md) for the full walkthrough,
-including the guardrail-rejection and tenant-isolation demonstrations.
+The full-stack app: [`docs/fullstack-app.md`](docs/fullstack-app.md).
+Platform demos (onboarding, guardrail-rejection, tenant-isolation):
+[`docs/demo-runbook.md`](docs/demo-runbook.md).
 
 ---
 

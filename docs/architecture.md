@@ -16,7 +16,7 @@ How the open-source CaaS platform fits together, layer by layer.
                                                       │
         ┌─────────────────────────────────┬──────────┴───────────┐
         ▼                                  ▼                      ▼
-  acme-web.BASE_DOMAIN            jaeger.BASE_DOMAIN      grafana.BASE_DOMAIN
+  wordpress.BASE_DOMAIN            jaeger.BASE_DOMAIN      grafana.BASE_DOMAIN
    (tenant app)                    (platform UI)           (platform UI)
         │                                  ▲                      ▲
         │ traces/metrics                   │ traces               │ metrics
@@ -114,10 +114,10 @@ No metrics stack is duplicated — only the trace backend is added.
 ## 3. The request path (customer traffic)
 
 ```
-1. Browser → https://acme-web.<BASE_DOMAIN>
+1. Browser → https://wordpress.<BASE_DOMAIN>
 2. DNS (*.<BASE_DOMAIN>) → HAProxy public IP
 3. HAProxy → NodePort 30443 on a cluster node
-4. ingress-nginx matches Host: acme-web... → tenant Service
+4. ingress-nginx matches Host: wordpress... → tenant Service
 5. NetworkPolicy permits ingress-nginx → app pod
 6. App serves the response; emits traces (→ collector → Jaeger)
    and exposes /metrics (→ Prometheus → Grafana)

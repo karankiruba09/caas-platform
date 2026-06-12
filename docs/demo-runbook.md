@@ -41,23 +41,25 @@ RBAC, network default-deny, and a scoped GitOps project.
 
 ## 2. Customer deploys their app (customer action, via Git)
 
-The customer's app lives in `apps/acme-web/` and is deployed through the
-golden-path chart. It is already wired into Argo, so committing it is the whole
-deployment:
+The POC's application is a full-stack **WordPress + MySQL** stack in
+`apps/wordpress/`, deployed by one Argo Application. Committing it is the whole
+deployment — see [`fullstack-app.md`](fullstack-app.md) for the full feature
+walkthrough.
 
 ```bash
-kubectl -n argocd get application acme-web -o jsonpath='{.status.sync.status} {.status.health.status}{"\n"}'
-kubectl -n tenant-acme get deploy,svc,ingress,servicemonitor
+kubectl -n argocd get application wordpress -o jsonpath='{.status.sync.status} {.status.health.status}{"\n"}'
+kubectl -n tenant-wordpress get deploy,statefulset,pvc,svc,ingress,hpa,cronjob
 ```
 
 Open it in a browser:
 
 ```
-https://acme-web.<BASE_DOMAIN>
+https://wordpress.<BASE_DOMAIN>
 ```
 
-**Talking point:** the customer never ran `kubectl`. They committed to Git; the
-platform gave them a running app at an HTTPS URL with a valid certificate.
+**Talking point:** the customer never ran `kubectl`. They committed manifests to
+Git; the platform gave them a running, TLS-terminated, mesh-secured, autoscaling,
+backed-up full-stack app — and auto-wired the TLS, mTLS, tracing, and metrics.
 
 ---
 
