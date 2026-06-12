@@ -1,0 +1,9 @@
+# The demo front-door portal — a platform service (not a tenant).
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: portal
+  labels:
+    app.kubernetes.io/part-of: caas-platform
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/warn: restricted

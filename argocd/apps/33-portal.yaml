@@ -1,0 +1,23 @@
+# The branded demo front-door portal (ThinkOn Open-Source K8s Demo).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: platform-portal
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: platform
+  source:
+    repoURL: https://github.com/karankiruba09/caas-platform.git
+    targetRevision: main
+    path: platform/portal
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: portal
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
