@@ -30,9 +30,10 @@
 
   /* nav */
   nav{display:flex;align-items:center;justify-content:space-between;padding:22px 0}
-  .brand{display:flex;align-items:center;gap:12px;font-weight:700;letter-spacing:.2px}
-  .mark{width:34px;height:34px;filter:drop-shadow(0 4px 12px rgba(56,189,248,.5))}
-  .brand small{display:block;font-weight:500;font-size:11px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase}
+  .brand{display:flex;align-items:center;gap:14px}
+  .logo{height:26px;width:auto;display:block}
+  .divider{width:1px;height:22px;background:var(--line)}
+  .brand small{font-weight:600;font-size:11px;color:var(--muted);letter-spacing:.16em;text-transform:uppercase}
   .nav-links{display:flex;gap:26px;font-size:14px;color:var(--muted2)}
   .nav-links a:hover{color:var(--txt)}
   .pill{font-size:12px;color:var(--c3);border:1px solid rgba(52,211,153,.3);background:rgba(52,211,153,.08);padding:5px 12px;border-radius:999px;display:inline-flex;align-items:center;gap:7px}
@@ -85,10 +86,13 @@
 
   /* journeys */
   .two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-  .jour{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:26px}
+  .jour{display:block;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:26px;transition:.2s}
+  .jour:hover{transform:translateY(-4px);border-color:rgba(129,140,248,.4);box-shadow:0 18px 50px -22px rgba(129,140,248,.4)}
   .jour h3{font-size:17px;font-weight:700;margin-bottom:6px}
   .jour .who{font-size:12px;text-transform:uppercase;letter-spacing:.14em;color:var(--c2);font-weight:600}
   .jour p{color:var(--muted);font-size:14px;margin-top:10px}
+  .jour .more{margin-top:16px;font-weight:600;font-size:14px;color:var(--c2);display:inline-flex;align-items:center;gap:7px;transition:.2s}
+  .jour:hover .more{gap:11px}
 
   footer{margin:80px 0 40px;padding-top:26px;border-top:1px solid var(--line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;color:var(--muted);font-size:13px}
   footer a{color:var(--c1)}
@@ -105,8 +109,9 @@
 
   <nav>
     <div class="brand">
-      <svg class="mark" viewBox="0 0 32 32"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#38bdf8"/><stop offset="1" stop-color="#818cf8"/></linearGradient></defs><path fill="url(#g)" d="M16 2l12 7v14l-12 7-12-7V9z"/><path fill="#070b14" d="M16 9.2l6.2 3.6v6.4L16 22.8l-6.2-3.6v-6.4z" opacity=".55"/></svg>
-      <div>ThinkOn<small>Open-Source K8s Demo</small></div>
+      <img class="logo" src="/thinkon-logo.png" alt="ThinkOn" />
+      <span class="divider"></span>
+      <small>Open-Source K8s Demo</small>
     </div>
     <div class="nav-links">
       <a href="#services">Services</a>
@@ -201,16 +206,18 @@
   <section class="sec" id="journeys">
     <div class="sec-h"><h2>Two journeys</h2><span>one platform, two audiences</span><div class="line"></div></div>
     <div class="two">
-      <div class="jour">
+      <a class="jour" href="/platform-onboarding.html">
         <div class="who">Platform team</div>
         <h3>Onboard a tenant in one step</h3>
         <p>A single command provisions an isolated, guard-railed namespace — quota, RBAC, default-deny network, Pod Security, GitOps project, policy enforcement — and issues a namespace-scoped kubeconfig.</p>
-      </div>
-      <div class="jour">
+        <span class="more">View design &amp; onboarding steps →</span>
+      </a>
+      <a class="jour" href="/app-onboarding.html">
         <div class="who">Application team</div>
         <h3>Ship a full-stack app from one commit</h3>
         <p>Commit manifests; the platform delivers a running app with automatic TLS, mesh mTLS, distributed tracing, metrics, autoscaling and backups — none of it hand-wired.</p>
-      </div>
+        <span class="more">View design &amp; onboarding steps →</span>
+      </a>
     </div>
   </section>
 

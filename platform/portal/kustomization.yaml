@@ -12,3 +12,6 @@ configMapGenerator:
   - name: portal-html
     files:
       - index.html
+      - platform-onboarding.html
+      - app-onboarding.html
+      - thinkon-logo.png

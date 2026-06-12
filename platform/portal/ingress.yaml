@@ -4,7 +4,9 @@ metadata:
   name: portal
   namespace: portal
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-cloudflare
+    # HTTP-01 (not the cluster's default Cloudflare DNS-01) so cert issuance does
+    # not depend on the Cloudflare API — the portal is publicly reachable on :80.
+    cert-manager.io/cluster-issuer: letsencrypt-http01
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
 spec:
   ingressClassName: nginx

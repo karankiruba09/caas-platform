@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tenant Onboarding · ThinkOn Open-Source K8s Demo</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%2338bdf8' d='M16 2l12 7v14l-12 7-12-7V9z'/%3E%3C/svg%3E" />
+<style>
+  :root{--bg:#070b14;--bg2:#0b1220;--card:#0e1626;--card2:#111c30;--line:#1c2942;--txt:#e6edf6;--muted:#8da3c0;--muted2:#94a7c4;--c1:#38bdf8;--c2:#818cf8;--c3:#34d399}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,sans-serif;color:var(--txt);line-height:1.6;-webkit-font-smoothing:antialiased;
+    background:radial-gradient(1100px 560px at 85% -10%,rgba(129,140,248,.16),transparent 60%),radial-gradient(800px 460px at 0% 0%,rgba(56,189,248,.14),transparent 55%),var(--bg);background-attachment:fixed;min-height:100vh}
+  .wrap{max-width:1000px;margin:0 auto;padding:0 24px}
+  a{color:inherit;text-decoration:none}
+  nav{display:flex;align-items:center;justify-content:space-between;padding:22px 0}
+  .brand{display:flex;align-items:center;gap:14px}
+  .logo{height:24px}
+  .divider{width:1px;height:20px;background:var(--line)}
+  .brand small{font-weight:600;font-size:11px;color:var(--muted);letter-spacing:.16em;text-transform:uppercase}
+  .back{font-size:14px;color:var(--muted2);display:inline-flex;align-items:center;gap:7px;transition:.18s}
+  .back:hover{color:var(--c1)}
+  header{padding:48px 0 8px}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--c2);border:1px solid var(--line);background:rgba(129,140,248,.07);padding:7px 14px;border-radius:999px;margin-bottom:20px}
+  h1{font-size:clamp(30px,5vw,46px);line-height:1.08;letter-spacing:-1px;font-weight:800}
+  h1 .grad{background:linear-gradient(110deg,var(--c1),var(--c2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  header p{max-width:680px;margin-top:18px;color:var(--muted);font-size:17px}
+  .sec{margin-top:56px}
+  .sec-h{display:flex;align-items:baseline;gap:14px;margin-bottom:22px}
+  .sec-h h2{font-size:21px;font-weight:700;letter-spacing:-.3px}
+  .sec-h .k{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--c1);font-weight:600}
+  .line{flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .card{background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid var(--line);border-radius:16px;padding:22px}
+  .card h3{font-size:15.5px;font-weight:700;display:flex;align-items:center;gap:9px;margin-bottom:7px}
+  .card p{color:var(--muted);font-size:13.5px}
+  .ctrl{display:flex;gap:13px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+  .ctrl .n{flex:0 0 auto;width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:rgba(56,189,248,.1);border:1px solid var(--line);font-size:15px}
+  .ctrl b{font-size:14.5px}
+  .ctrl span{display:block;color:var(--muted);font-size:13px;margin-top:2px}
+  .list{display:grid;gap:11px}
+  .steps{display:grid;gap:14px;counter-reset:s}
+  .step{position:relative;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 22px 20px 64px}
+  .step::before{counter-increment:s;content:counter(s);position:absolute;left:18px;top:18px;width:32px;height:32px;border-radius:9px;display:grid;place-items:center;font-weight:800;color:#06101f;background:linear-gradient(110deg,var(--c1),var(--c2))}
+  .step h4{font-size:15.5px;font-weight:700}
+  .step p{color:var(--muted);font-size:13.5px;margin-top:4px}
+  code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  pre{background:#060a12;border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-top:12px;overflow:auto;font-size:13px;color:#cfe0f5}
+  .pre-c1{color:var(--c1)} .pre-c3{color:var(--c3)} .pre-m{color:#5f7a99}
+  .tag{font-size:11px;font-weight:600;color:var(--muted);border:1px solid var(--line);padding:2px 9px;border-radius:999px}
+  .cta{margin:46px 0 0;display:flex;gap:12px;flex-wrap:wrap}
+  .btn{padding:12px 20px;border-radius:11px;font-weight:600;font-size:14px;border:1px solid var(--line);transition:.18s}
+  .btn.primary{background:linear-gradient(110deg,var(--c1),var(--c2));color:#06101f;border:none}
+  .btn.ghost:hover{border-color:var(--c1);color:var(--c1)}
+  footer{margin:70px 0 40px;padding-top:24px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+  @media(max-width:760px){.grid2,.grid3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <nav>
+    <a class="brand" href="/">
+      <img class="logo" src="/thinkon-logo.png" alt="ThinkOn" />
+      <span class="divider"></span><small>Open-Source K8s Demo</small>
+    </a>
+    <a class="back" href="/">← Back to portal</a>
+  </nav>
+
+  <header>
+    <span class="eyebrow">Platform Team · Design &amp; Onboarding</span>
+    <h1>Tenant <span class="grad">onboarding</span></h1>
+    <p>How a tenant is <b>designed</b>, <b>secured</b>, and <b>provisioned</b> — isolated by default, least-privilege, policy-enforced, and provisioned in one command with a namespace-scoped credential.</p>
+  </header>
+
+  <!-- DESIGN: principles -->
+  <section class="sec">
+    <div class="sec-h"><span class="k">Design</span><h2>Principles</h2><div class="line"></div></div>
+    <div class="grid3">
+      <div class="card"><h3>🛡️ Isolation by default</h3><p>A new namespace denies all ingress and runs <code>restricted</code> Pod Security before any workload exists.</p></div>
+      <div class="card"><h3>🔑 Least privilege</h3><p>The tenant gets a Role scoped to <i>their</i> namespace — never cluster scope, never their own guardrails.</p></div>
+      <div class="card"><h3>🧱 Defense in depth</h3><p>No single control is the only protection — RBAC <i>and</i> network policy <i>and</i> quota <i>and</i> Pod Security <i>and</i> admission policy.</p></div>
+      <div class="card"><h3>📦 Policy as code</h3><p>Guardrails are Kyverno policies in Git, enforced at admission — not tribal knowledge.</p></div>
+      <div class="card"><h3>🔁 GitOps source of truth</h3><p>Every tenant's desired state lives in <code>tenants/&lt;name&gt;/</code>; Argo CD reconciles the cluster to it.</p></div>
+      <div class="card"><h3>♻️ Reproducible &amp; revocable</h3><p>Onboarding is templated and idempotent; offboarding prunes everything and revokes credentials.</p></div>
+    </div>
+  </section>
+
+  <!-- DESIGN: controls provisioned -->
+  <section class="sec">
+    <div class="sec-h"><span class="k">Design</span><h2>What every tenant gets — security by construction</h2><div class="line"></div></div>
+    <div class="list">
+      <div class="ctrl"><div class="n">🧭</div><div><b>Namespace + Pod Security <span class="tag">restricted</span></b><span>The boundary. Blocks privileged/root/host-namespace pods at the namespace gate.</span></div></div>
+      <div class="ctrl"><div class="n">📊</div><div><b>ResourceQuota + LimitRange</b><span>Caps CPU/memory/pods/PVCs; zero LoadBalancers/NodePorts (ingress-only exposure).</span></div></div>
+      <div class="ctrl"><div class="n">🔐</div><div><b>RBAC Role + ServiceAccount <span class="tag">namespaced</span></b><span>Full control of workloads in the namespace — but not its own quota, limits, or network.</span></div></div>
+      <div class="ctrl"><div class="n">🚧</div><div><b>NetworkPolicy <span class="tag">default-deny</span></b><span>Drops cross-tenant traffic; allows only ingress-nginx and Prometheus.</span></div></div>
+      <div class="ctrl"><div class="n">🎯</div><div><b>Argo CD AppProject</b><span>Scopes the tenant's GitOps apps to their namespace, approved repo, and approved kinds.</span></div></div>
+      <div class="ctrl"><div class="n">⚖️</div><div><b>Kyverno policies <span class="tag">admission</span></b><span>Auto-applied via the <code>caas.tenant</code> label: limits, non-root, no-privileged, approved registry.</span></div></div>
+    </div>
+  </section>
+
+  <!-- DESIGN: defense in depth -->
+  <section class="sec">
+    <div class="sec-h"><span class="k">Design</span><h2>Defense in depth</h2><div class="line"></div></div>
+    <pre>Request to mutate the cluster as a tenant
+   │
+   ▼ <span class="pre-c1">AuthN</span>      who are you?            (SA token / OIDC group)
+   ▼ <span class="pre-c1">AuthZ</span>      RBAC: only tenant-admin Role in tenant-&lt;name&gt;
+   ▼ <span class="pre-c1">Admission</span>  Pod Security (restricted) rejects unsafe pods
+   ▼ <span class="pre-c1">Admission</span>  Kyverno: limits · non-root · no-privileged · registry
+   ▼ <span class="pre-c1">Quota</span>      ResourceQuota / LimitRange cap consumption
+   ▼ <span class="pre-c1">Runtime</span>    NetworkPolicy default-deny isolates traffic
+<span class="pre-c3">Any single layer failing still leaves the others.</span></pre>
+  </section>
+
+  <!-- HOW: steps -->
+  <section class="sec">
+    <div class="sec-h"><span class="k">How</span><h2>Onboarding steps — one command</h2><div class="line"></div></div>
+    <pre><span class="pre-m"># Platform team — provision a tenant and issue its credential</span>
+./scripts/onboard-tenant.sh <span class="pre-c1">x</span> <span class="pre-m">[--mesh] [--allow-root] [--gitops-only]</span></pre>
+    <div class="steps" style="margin-top:16px">
+      <div class="step"><h4>Render</h4><p>The tenant is rendered from <code>tenants/_template/</code> into <code>tenants/x/</code> (token substitution + opt-in mesh/root labels).</p></div>
+      <div class="step"><h4>Provision</h4><p>All controls are applied to the cluster — namespace first, then quota, limits, RBAC, ServiceAccount, default-deny network, and the AppProject.</p></div>
+      <div class="step"><h4>Issue credential</h4><p>A bound, time-limited token is minted from the tenant's ServiceAccount and packaged as <code>out/tenant-x.kubeconfig</code> — scoped to the namespace, gitignored.</p></div>
+      <div class="step"><h4>Hand over &amp; track</h4><p>Give the kubeconfig to the tenant; commit <code>tenants/x/</code> so Argo CD adopts and reconciles it as the source of truth.</p></div>
+    </div>
+    <pre style="margin-top:16px"><span class="pre-m"># the issued kubeconfig is namespace-scoped — verified:</span>
+KUBECONFIG=out/tenant-x.kubeconfig kubectl get pods            <span class="pre-c3"># works (their namespace)</span>
+KUBECONFIG=out/tenant-x.kubeconfig kubectl get nodes           <span class="pre-c1"># Forbidden</span>
+KUBECONFIG=out/tenant-x.kubeconfig kubectl get pods -n kube-system  <span class="pre-c1"># Forbidden</span></pre>
+  </section>
+
+  <div class="cta">
+    <a class="btn primary" href="/app-onboarding.html">Application onboarding →</a>
+    <a class="btn ghost" href="https://github.com/karankiruba09/caas-platform/blob/main/docs/blueprint-tenant-onboarding.md" target="_blank" rel="noopener">Full design blueprint</a>
+    <a class="btn ghost" href="/">← Portal</a>
+  </div>
+
+  <footer>ThinkOn · Open-Source Kubernetes Demo — tenant onboarding design &amp; runbook.</footer>
+
+</div>
+</body>
+</html>
