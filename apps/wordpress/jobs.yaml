@@ -52,6 +52,16 @@ spec:
                 --post_title="Hello from the CaaS platform" \
                 --post_content="Frontend + MySQL StatefulSet + Longhorn volumes + mesh mTLS + tracing — deployed by one GitOps commit."
           env:
+            # wp-config.php resolves DB creds from these env vars at runtime
+            # (getenv_docker), so the install Job needs them too.
+            - name: WORDPRESS_DB_HOST
+              value: mysql:3306
+            - name: WORDPRESS_DB_NAME
+              valueFrom: { secretKeyRef: { name: wordpress-db, key: mysql-database } }
+            - name: WORDPRESS_DB_USER
+              valueFrom: { secretKeyRef: { name: wordpress-db, key: mysql-user } }
+            - name: WORDPRESS_DB_PASSWORD
+              valueFrom: { secretKeyRef: { name: wordpress-db, key: mysql-password } }
             - name: WP_ADMIN_USER
               valueFrom: { secretKeyRef: { name: wordpress-db, key: wp-admin-user } }
             - name: WP_ADMIN_PASSWORD
