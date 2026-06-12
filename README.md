@@ -70,8 +70,25 @@ caas-platform/
 │   └── wordpress/                # THE full-stack app (web + db + storage + jobs + mesh)
 └── docs/
     ├── architecture.md           # diagrams + how each layer works
-    ├── demo-runbook.md           # platform demo: onboarding, guardrails, isolation
-    └── fullstack-app.md          # the WordPress full-stack app + feature coverage
+    ├── platform-onboarding.md    # PLATFORM TEAM: one-step tenant onboarding + kubeconfig
+    ├── fullstack-app.md          # TENANT/APP TEAM: the WordPress full-stack app journey
+    └── demo-runbook.md           # platform demo: onboarding, guardrails, isolation
+```
+
+## Two journeys, two audiences
+
+The POC serves two teams that will operate independently:
+
+| Journey | Audience | What it is | Guide |
+|---|---|---|---|
+| **Onboard a tenant** | platform team ("landlord") | One command provisions an isolated, guard-railed tenant and issues a **namespace-scoped kubeconfig** to hand over | [`docs/platform-onboarding.md`](docs/platform-onboarding.md) |
+| **Deploy an application** | tenant / app team | A full-stack app (web+db+storage+jobs) deployed via GitOps, with TLS/mesh/observability/policy auto-applied | [`docs/fullstack-app.md`](docs/fullstack-app.md) |
+
+```bash
+# Platform team — onboard tenant "x" in one step (provision + scoped kubeconfig):
+./scripts/onboard-tenant.sh x
+#   → tenant-x with quota, limits, RBAC, NetworkPolicy, PodSecurity, AppProject,
+#     Kyverno enforcement, and out/tenant-x.kubeconfig (works only in tenant-x).
 ```
 
 ## The application

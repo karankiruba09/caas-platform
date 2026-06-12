@@ -58,23 +58,27 @@ flow to Prometheus/Grafana at `https://grafana.<BASE_DOMAIN>`.)
 
 ---
 
-## 3. Onboard a new customer (platform team action)
+## 3. Onboard a new customer (platform team action) — one step
 
 ```bash
 ./scripts/onboard-tenant.sh demo
-git add tenants/demo && git commit -m "onboard tenant demo" && git push
 ```
 
-Within ~1 minute Argo creates the tenant. Show the isolation that appeared:
+That single command provisions the whole tenant **and** issues a
+namespace-scoped kubeconfig. Show the isolation that appeared:
 
 ```bash
 kubectl get ns tenant-demo --show-labels
-kubectl -n tenant-demo get resourcequota,limitrange,networkpolicy,rolebinding
+kubectl -n tenant-demo get resourcequota,limitrange,networkpolicy,serviceaccount,rolebinding
 kubectl -n argocd get appproject demo
+ls out/tenant-demo.kubeconfig          # the credential to hand to the tenant
 ```
 
-**Talking point:** one PR produced a fully isolated tenant — quota, limits, RBAC,
-network default-deny, and a scoped GitOps project.
+**Talking point:** one command produced a fully isolated tenant — quota, limits,
+RBAC, network default-deny, Pod Security, a scoped GitOps project, *and* a
+ready-to-use namespace-scoped kubeconfig. (See
+[`platform-onboarding.md`](platform-onboarding.md).) Commit `tenants/demo/` to
+track it in GitOps.
 
 ---
 
@@ -114,27 +118,19 @@ other tenant, like `demo`, still requires non-root.)
 
 ## 5. Prove tenant isolation
 
-**RBAC** — verify the tenant-admin role is correctly scoped. NOTE: if your
-kubeconfig goes through the Rancher proxy (server `.../k8s/clusters/...`),
-`kubectl --as` impersonation is NOT honored (it evaluates as admin). Test with a
-real ServiceAccount token:
+**RBAC** — use the tenant's own issued kubeconfig (the one they'd receive) to
+prove it is namespace-scoped. (This also sidesteps the Rancher proxy, which
+ignores `kubectl --as` impersonation and evaluates as admin.)
 
 ```bash
-kubectl -n tenant-demo create serviceaccount iso-test
-kubectl -n tenant-demo create rolebinding iso-test --role=tenant-admin \
-  --serviceaccount=tenant-demo:iso-test
-TOK=$(kubectl -n tenant-demo create token iso-test --duration=10m)
-SERVER=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
-K="kubectl --server=$SERVER --token=$TOK --insecure-skip-tls-verify"
+K="kubectl --kubeconfig=out/tenant-demo.kubeconfig"
 
-$K auth can-i create deployments -n tenant-demo     # yes  (own workloads)
-$K auth can-i get pods -n tenant-wordpress          # no   (no cross-tenant)
-$K auth can-i get nodes                             # no   (no cluster escalation)
-$K auth can-i delete resourcequota -n tenant-demo   # no   (can't raise own limits)
-$K auth can-i create networkpolicies -n tenant-demo # no   (can't open own network)
-
-kubectl -n tenant-demo delete sa iso-test
-kubectl -n tenant-demo delete rolebinding iso-test
+$K auth can-i create deployments              # yes  (their namespace)
+$K get pods -n tenant-wordpress               # Forbidden (no cross-tenant)
+$K get nodes                                  # Forbidden (no cluster escalation)
+$K get namespaces                             # Forbidden (can't list cluster)
+$K auth can-i delete resourcequota            # no   (can't raise own limits)
+$K auth can-i create networkpolicies          # no   (can't open own network)
 ```
 
 **Network** — default-deny drops cross-tenant pod traffic. From `demo`, try to
