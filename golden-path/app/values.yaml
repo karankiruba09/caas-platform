@@ -27,7 +27,7 @@ ingress:
   # Host is <subdomain>.<baseDomain>. Set subdomain per app; baseDomain is the
   # cluster's app domain. Or set `host` directly to override.
   baseDomain: apps.k8-cmb1.gcloud.ca
-  subdomain: ""        # e.g. "acme-web"
+  subdomain: ""        # e.g. "my-app"
   host: ""             # explicit override; if empty, built from subdomain+baseDomain
   tlsSecretName: ""    # defaults to <fullname>-tls
 

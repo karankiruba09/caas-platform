@@ -98,9 +98,9 @@ $(printf '\033[1;32m')Argo CD installed and reconciling this repo.$(printf '\033
     open https://localhost:8080   (user: admin  pass: ${ADMIN_PW})
 
   Next:
-    ./scripts/onboard-tenant.sh acme      # create a tenant
-    git add tenants/acme && git commit -m "onboard acme" && git push
-    # Argo syncs the tenant, then the sample app in apps/acme-web/.
+    ./scripts/onboard-tenant.sh demo      # onboard a new tenant
+    git add tenants/demo && git commit -m "onboard demo" && git push
+    # The full-stack app (apps/wordpress/) is already in the repo and syncs too.
 
   Full walkthrough: docs/demo-runbook.md
 EOF

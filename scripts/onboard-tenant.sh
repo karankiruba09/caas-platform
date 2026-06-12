@@ -5,7 +5,7 @@
 # tenant (namespace + quota + limits + RBAC + netpol + AppProject) comes to life.
 #
 # Usage:
-#   ./scripts/onboard-tenant.sh acme
+#   ./scripts/onboard-tenant.sh demo
 #
 set -euo pipefail
 

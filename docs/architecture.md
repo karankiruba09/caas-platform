@@ -42,7 +42,9 @@ child Applications for every platform concern:
 - `platform-kyverno` → installs Kyverno (Helm)
 - `platform-observability` → installs OTel Collector + Jaeger (Helm) + ingress
 - `platform-policies` → applies the Kyverno ClusterPolicies in `policies/`
-- `tenants` → an ApplicationSet that fans out over `tenants/*` and `apps/*`
+- `platform-istio-*`, `platform-metrics-server`, `platform-argocd-ingress` → mesh, autoscaling metrics, UI
+- `tenants` → a directory Application applying every `tenants/<name>/`
+- `customer-apps` → a directory Application applying each `apps/<app>/application.yaml`
 
 Because everything is a child of the root app, `bootstrap.sh` only has to
 install Argo CD and apply one manifest. Argo does the rest and keeps it in sync.
@@ -129,10 +131,10 @@ No metrics stack is duplicated — only the trace backend is added.
 ## 4. The onboarding path (new tenant)
 
 ```
-1. ./scripts/onboard-tenant.sh acme
-   → renders tenants/acme/ from tenants/_template/
+1. ./scripts/onboard-tenant.sh demo
+   → renders tenants/demo/ from tenants/_template/
 2. git commit + push
-3. Argo CD ApplicationSet detects tenants/acme/ → creates an Application
+3. The `tenants` Application picks up tenants/demo/ on its next sync
 4. Argo applies: namespace, quota, limitrange, rbac, netpol, AppProject
 5. Tenant is live and isolated; their AppProject now permits their app to sync
 ```
