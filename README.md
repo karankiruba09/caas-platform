@@ -10,6 +10,10 @@ never touching the workload.
 > This repository is the **GitOps source of truth**. Argo CD watches it and
 > reconciles the cluster to match. To change the platform, change the repo.
 
+**Front door:** the branded **ThinkOn Open-Source K8s Demo** portal —
+`https://portal.apps.k8-cmb1.gcloud.ca` — links to the live app, Argo CD, Jaeger,
+and Grafana (`platform/portal/`).
+
 ---
 
 ## The story this POC tells
