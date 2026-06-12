@@ -69,11 +69,19 @@ caas-platform/
 ├── apps/
 │   └── wordpress/                # THE full-stack app (web + db + storage + jobs + mesh)
 └── docs/
-    ├── architecture.md           # diagrams + how each layer works
-    ├── platform-onboarding.md    # PLATFORM TEAM: one-step tenant onboarding + kubeconfig
-    ├── fullstack-app.md          # TENANT/APP TEAM: the WordPress full-stack app journey
-    └── demo-runbook.md           # platform demo: onboarding, guardrails, isolation
+    ├── architecture.md                      # diagrams + how each layer works
+    ├── blueprint-tenant-onboarding.md       # DESIGN: tenant onboarding (design+security+how)
+    ├── blueprint-application-onboarding.md  # DESIGN: app onboarding (design+security+how)
+    ├── platform-onboarding.md               # PLATFORM TEAM runbook: onboard + kubeconfig
+    ├── fullstack-app.md                      # TENANT/APP TEAM runbook: the WordPress app
+    └── demo-runbook.md                       # platform demo walkthrough
 ```
+
+> **Design blueprints vs runbooks.** The two `blueprint-*.md` documents are the
+> *design* references (objectives, principles, tenancy/security model, threat
+> model, policy catalog, lifecycle, roles) to hand a platform or app team. The
+> `*-onboarding`/`fullstack-app`/`demo-runbook` docs are the *operational* "how
+> to run it" companions.
 
 ## Two journeys, two audiences
 
